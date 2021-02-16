@@ -7,3 +7,4 @@ driver.get('https://www.basketball-reference.com/boxscores')
 date = driver.find_element_by_xpath('//*[@id="content"]/div[1]/span').text
 
 dave = 0
+dave = dave + 1
