@@ -43,4 +43,3 @@ print("{:.1f}".format(lastFiveAverageAssists))
 driverBovada = webdriver.Chrome(executable_path=DRIVER_PATH)
 driverBovada.get('https://www.basketball-reference.com/players/b/balllo01/gamelog/2021')
 
-yeet
