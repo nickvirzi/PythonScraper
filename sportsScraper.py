@@ -2,6 +2,7 @@ import time
 import sys
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import datetime
 
 def getESPNTeamAbbreviation(teamName):
     if teamName in ("Atlanta", 'Boston', 'Charlotte', 'Chicago', 'Cleveland', 'Dallas', 'Denver', 'Detroit', 'Houston', 'Indiana', 'Memphis', 'Miami', 'Miluakee', 'Minnesota', 'Orlando', 'Philadelphia', 'Phoenix', "Portland", 'Sacramento', 'Toronto', 'Utah', 'Washington'):
@@ -17,6 +18,9 @@ def getESPNTeamAbbreviation(teamName):
         return abbreviationFormatted
 
 playerName = input("Enter player name: ")
+
+currentDate = datetime.datetime.now()
+currentMonth = currentDate.strftime("%B")
 
 DRIVER_PATH = r'C:\Users\navir\Documents\ChromeDriver\chromedriver.exe'
 driver = webdriver.Chrome(executable_path=DRIVER_PATH)
@@ -40,11 +44,61 @@ time.sleep(2)
 
 selectPlayer = driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div/div/section/div/ul/div/div/li/section').click()
 
-averagePoints = driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[1]/div/div/div[2]/aside/ul/li[1]/div/div[2]')
-averageRebounds = driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[1]/div/div/div[2]/aside/ul/li[2]/div/div[2]')
-averageAssists = driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[1]/div/div/div[2]/aside/ul/li[3]/div/div[2]')
+window_after = driver.window_handles[0]
+driver.switch_to.window(window_after)
+
+averagePoints = driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[1]/div/div/div[2]/aside/ul/li[1]/div/div[2]').text
+averageRebounds = driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[1]/div/div/div[2]/aside/ul/li[2]/div/div[2]').text
+averageAssists = driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[1]/div/div/div[2]/aside/ul/li[3]/div/div[2]').text
+
+clickGameSplits = driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[2]/nav/ul/li[5]/a').click()
+
+window_after = driver.window_handles[0]
+driver.switch_to.window(window_after)
+
+dataCounterOne = 0
+dataCounterTwo = 0
+
+daysRest = ["0 Days Rest", "1 Days Rest", "2 Days Rest", "3+ Days Rest"]
+
+for tableRow in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[5]/div/div[1]/div[1]/section/div[1]/div[2]/div/table//tr'): 
+    data = [item.text for item in tableRow.find_elements_by_xpath(".//*[self::td]")]
+    dataCounterOne += 1
+    if currentMonth == data[0]:
+        curMonthCounter = dataCounterOne
+    elif daysRest[0] == data[0]:
+        zeroDaysRestCounter = dataCounterOne
+    elif daysRest[1] == data[0]:
+        oneDaysRestCounter = dataCounterOne
+    elif daysRest[2] == data[0]:
+        twoDaysRestCounter = dataCounterOne
+    elif daysRest[3] == data[0]:
+        threePlusDaysCounter = dataCounterOne
+
+for tableRow in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[5]/div/div[1]/div[1]/section/div[1]/div[2]/div/div/div[2]/table//tr'): 
+    dataTwo = [item.text for item in tableRow.find_elements_by_xpath(".//*[self::td]")]
+    dataCounterTwo += 1
+    if curMonthCounter == dataCounterTwo:
+        curMonthSplits = dataTwo
+    elif zeroDaysRestCounter == dataCounterTwo:
+        zeroDaysRestSplits = dataTwo
+    elif oneDaysRestCounter == dataCounterTwo:
+        oneDaysRestSplits = dataTwo
+    elif twoDaysRestCounter == dataCounterTwo:
+        twoDaysRestSplits = dataTwo
+    elif threePlusDaysCounter == dataCounterTwo:
+        threePlusDaysRestSplits = dataTwo
+
+gamesPlayedInCurMonth = curMonthSplits[0]
+fgPercentInCurMonth = curMonthSplits[3]
+threePtPercentCurMonth = curMonthSplits[5]
+avgPtsCurMonth = curMonthSplits[16]
+avgRebCurMonth = curMonthSplits[10]
+avgAstCurMonth = curMonthSplits[11]
 
 print(playerName + ' has averaged ' + averagePoints + ' points, ' + averageRebounds + ' rebounds, and ' + averageAssists + ' assists.')
+print(playerName + ' in ' + currentMonth + ' has averaged ' + avgPtsCurMonth + ' points, ' + avgRebCurMonth + ' rebounds, and ' + avgAstCurMonth + ' assists in ' + gamesPlayedInCurMonth + ' games.')
+print(playerName + ' is shooting ' + fgPercentInCurMonth + ' percent from the field and ' + threePtPercentCurMonth + ' percent from three in ' + currentMonth)
 
 playerURL = driver.current_url
 
@@ -62,10 +116,10 @@ clickSchedule = driver.find_element_by_xpath('//*[@id="global-nav-secondary"]/di
 window_after = driver.window_handles[0]
 driver.switch_to.window(window_after)
 
-for table in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[5]/div/div[1]/section/div/section/section/div/div/div/div[2]/table//tr'): 
-    dataTwo = [item.text for item in table.find_elements_by_xpath(".//*[self::td]")]
-    if len(dataTwo) > 3:
-        if dataTwo[3] == '':
+for tableRow in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[5]/div/div[1]/section/div/section/section/div/div/div/div[2]/table//tr'): 
+    dataThree = [item.text for item in tableRow.find_elements_by_xpath(".//*[self::td]")]
+    if len(dataThree) > 3:
+        if dataThree[3] == '':
             nextOpponent = dataTwo[1]
             break
 
