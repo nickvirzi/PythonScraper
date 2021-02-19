@@ -78,19 +78,32 @@ clickSchedule = driver.find_element_by_xpath('//*[@id="global-nav-secondary"]/di
 window_after = driver.window_handles[0]
 driver.switch_to.window(window_after)
 
+previousMatchupClause = True
+
 #Grabbing next opponent for the players team
 for tableRow in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[5]/div/div[1]/section/div/section/section/div/div/div/div[2]/table//tr'): 
     dataThree = [item.text for item in tableRow.find_elements_by_xpath(".//*[self::td]")]
-    if len(dataThree) > 3:
+    if len(dataThree) > 3: #This if statement helps to prevent postponed games
         if dataThree[3] == '':
             nextOpponent = dataThree[1]
+            nextGameDateUnformatted = dataThree[0]
             break
+        elif len(dataThree) == 5 and previousMatchupClause == True:
+            previousMatchupData = previousData
+            previousMatchupClause = False
+        previousData = dataThree
 
-#Formatting and handling the team name and getting the abbreviation
+nextGameDate = nextGameDateUnformatted[9:]
+previousGameDate = previousMatchupData[0][9:]
+daysRestInt = (int(nextGameDate) - int(previousGameDate)) - 1
+
+#Formatting and handling the team name and getting the abbreviation and determine home or away game
 if '@' in nextOpponent:
     nextOpponentFormatted = nextOpponent[2:]
+    nextGame = 'Road'
 else:
     nextOpponentFormatted = nextOpponent[3:]
+    nextGame = 'Home'
 
 nextOpponentAbbreviated = getESPNTeamAbbreviation(nextOpponentFormatted)
 
@@ -112,6 +125,8 @@ driver.switch_to.window(window_after)
 dataCounterOne = 0
 dataCounterTwo = 0
 vsTeamCounter = 0
+awayGameCounter = 0
+homeGameCounter = 0
 
 #Set up to find days rest in the table
 daysRest = ["0 Days Rest", "1 Days Rest", "2 Days Rest", "3+ Days Rest"]
@@ -124,6 +139,10 @@ for tableRow in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[
     dataCounterOne += 1
     if currentMonth == data[0]:
         curMonthCounter = dataCounterOne
+    elif nextGame == data[0]:
+        homeGameCounter = dataCounterOne
+    elif nextGame == data[0]:
+        awayGameCounter = dataCounterOne
     elif daysRest[0] == data[0]:
         zeroDaysRestCounter = dataCounterOne
     elif daysRest[1] == data[0]:
@@ -141,6 +160,10 @@ for tableRow in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[
     dataCounterTwo += 1
     if curMonthCounter == dataCounterTwo:
         curMonthSplits = dataTwo
+    elif homeGameCounter == dataCounterTwo:
+        homeGameSplits = dataTwo
+    elif awayGameCounter == dataCounterTwo:
+        awayGameSplits = dataTwo
     elif zeroDaysRestCounter == dataCounterTwo:
         zeroDaysRestSplits = dataTwo
     elif oneDaysRestCounter == dataCounterTwo:
@@ -160,6 +183,54 @@ avgPtsCurMonth = curMonthSplits[16]
 avgRebCurMonth = curMonthSplits[10]
 avgAstCurMonth = curMonthSplits[11]
 
+#Sets up all stats for zero days between games
+zeroDaysRestGamesPlayed = zeroDaysRestSplits[0]
+zeroDaysRestFGPercent = zeroDaysRestSplits[3]
+zeroDaysRestThreePtPercent = zeroDaysRestSplits[5]
+zeroDaysRestAvgPts = zeroDaysRestSplits[16]
+zeroDaysRestAvgReb = zeroDaysRestSplits[10]
+zeroDaysRestAvgAst = zeroDaysRestSplits[11]
+
+#Sets up all stats for one days between games
+oneDaysRestGamesPlayed = oneDaysRestSplits[0]
+oneDaysRestFGPercent = oneDaysRestSplits[3]
+oneDaysRestThreePtPercent = oneDaysRestSplits[5]
+oneDaysRestAvgPts = oneDaysRestSplits[16]
+oneDaysRestAvgReb = oneDaysRestSplits[10]
+oneDaysRestAvgAst = oneDaysRestSplits[11]
+
+#Sets up all stats for two days between games
+twoDaysRestGamesPlayed = twoDaysRestSplits[0]
+twoDaysRestFGPercent = twoDaysRestSplits[3]
+twoDaysRestThreePtPercent = twoDaysRestSplits[5]
+twoDaysRestAvgPts = twoDaysRestSplits[16]
+twoDaysRestAvgReb = twoDaysRestSplits[10]
+twoDaysRestAvgAst = twoDaysRestSplits[11]
+
+#Sets up all stats for three days between games
+threePlusDaysRestGamesPlayed = threePlusDaysRestSplits[0]
+threePlusDaysRestFGPercent = threePlusDaysRestSplits[3]
+threePlusRestThreePtPercent = threePlusDaysRestSplits[5]
+threePlusDaysRestAvgPts = threePlusDaysRestSplits[16]
+threePlusDaysRestAvgReb = threePlusDaysRestSplits[10]
+threePlusDaysRestAvgAst = threePlusDaysRestSplits[11]
+
+#Sets up all stats for away and  game splits
+if nextGame == 'Away':
+    awayGamesPlayed = awayGameSplits[0]
+    awayGamesFGPercent = awayGameSplits[3]
+    awayGamesThreePtPercent = awayGameSplits[5]
+    awayGamesAvgPts = awayGameSplits[16]
+    awayGamesAvgReb = awayGameSplits[10]
+    awayGamesAvgAst = awayGameSplits[11]
+elif nextGame == 'Home':
+    homeGamesPlayed = homeGameSplits[0]
+    homeGamesFGPercent = homeGameSplits[3]
+    homeGamesThreePtPercent = homeGameSplits[5]
+    homeGamesAvgPts = homeGameSplits[16]
+    homeGamesAvgReb = homeGameSplits[10]
+    homeGamesAvgAst = homeGameSplits[11]
+
 #Sets up all stats vs opponents team if the player has played them before
 if vsTeamCounter != 0:
     gamesPlayedVSOpp = vsTeamSplits[0]
@@ -171,14 +242,45 @@ if vsTeamCounter != 0:
 
 #Outputing the data in written form
 print(' ')
-print(formattedPlayerName + ' has averaged ' + averagePoints + ' points, ' + averageRebounds + ' rebounds, and ' + averageAssists + ' assists.')
+print(formattedPlayerName + ' has averaged ' + averagePoints + ' points, ' + averageRebounds + ' rebounds, and ' + averageAssists + ' assists this season.')
+print(' ')
 print(formattedPlayerName + ' in ' + currentMonth + ' has averaged ' + avgPtsCurMonth + ' points, ' + avgRebCurMonth + ' rebounds, and ' + avgAstCurMonth + ' assists in ' + gamesPlayedInCurMonth + ' games.')
+print(formattedPlayerName + ' in ' + currentMonth + ' is shooting ' + fgPercentInCurMonth + ' percent from the field and ' + fgPercentInCurMonth + ' percent from three.')
+print(' ')
 if vsTeamCounter != 0:
     print(formattedPlayerName + ' has played ' + nextOpponentFormatted + ' ' + gamesPlayedVSOpp + ' times. He has averaged ' + avgPtsVSOpp + ' points, ' + avgRebVSOpp + ' rebounds, and ' + avgAdtVSOpp + ' assists.')
     print(formattedPlayerName + ' is shooting ' + fgPercentVSOpp + ' percent from the field and ' + threePtPercentVSOpp + ' percent from three against ' + nextOpponentFormatted + '.')
 else:
     print(formattedPlayerName + ' has not played ' + nextOpponentFormatted + ' yet.')
 print(' ')
+if daysRestInt == 0:
+    print(formattedPlayerName + ' has had ' + str(daysRestInt) + ' days since his last game.')
+    print(formattedPlayerName + ' has averaged ' + zeroDaysRestAvgPts + ' points, ' + zeroDaysRestAvgReb + ' rebounds, and ' + zeroDaysRestAvgAst + ' assists with ' + str(daysRestInt) + ' days rest in ' + zeroDaysRestGamesPlayed + ' games.')
+    print(formattedPlayerName + ' is shooting ' + zeroDaysRestFGPercent + ' percent from the field and ' + zeroDaysRestThreePtPercent + ' percent from three with ' + str(daysRestInt) + ' days rest in ' + zeroDaysRestGamesPlayed + ' games.')
+elif daysRestInt == 1:
+    print(formattedPlayerName + ' has had ' + str(daysRestInt) + ' days since his last game.')
+    print(formattedPlayerName + ' has averaged ' + oneDaysRestAvgPts + ' points, ' + oneDaysRestAvgReb + ' rebounds, and ' + oneDaysRestAvgAst + ' assists with ' + str(daysRestInt) + ' days rest in ' + oneDaysRestGamesPlayed + ' games.')
+    print(formattedPlayerName + ' is shooting ' + oneDaysRestFGPercent + ' percent from the field and ' + oneDaysRestThreePtPercent + ' percent from three with ' + str(daysRestInt) + ' days rest in ' + oneDaysRestGamesPlayed + ' games.')
+elif daysRestInt == 2:
+    print(formattedPlayerName + ' has had ' + str(daysRestInt) + ' days since his last game.')
+    print(formattedPlayerName + ' has averaged ' + twoDaysRestAvgPts + ' points, ' + twoDaysRestAvgReb + ' rebounds, and ' + twoDaysRestAvgAst + ' assists with ' + str(daysRestInt) + ' days rest in ' + twoDaysRestGamesPlayed + ' games.')
+    print(formattedPlayerName + ' is shooting ' + twoDaysRestFGPercent + ' percent from the field and ' + twoDaysRestThreePtPercent + ' percent from three with ' + str(daysRestInt) + ' days rest in ' + twoDaysRestGamesPlayed + ' games.')
+elif daysRestInt >= 3:
+    print(formattedPlayerName + ' has had ' + str(daysRestInt) + ' days since his last game.')
+    print(formattedPlayerName + ' has averaged ' + threePlusDaysRestAvgPts + ' points, ' + threePlusDaysRestAvgReb + ' rebounds, and ' + threePlusDaysRestAvgAst + ' assists with ' + str(daysRestInt) + ' days rest in ' + threePlusDaysRestGamesPlayed + ' games.')
+    print(formattedPlayerName + ' is shooting ' + threePlusDaysRestFGPercent + ' percent from the field and ' + threePlusRestThreePtPercent + ' percent from three with ' + str(daysRestInt) + ' days rest in ' + threePlusDaysRestGamesPlayed + ' games.')
+print(' ')
+if nextGame == 'Home':
+    print(formattedPlayerName + ' has a ' + nextGame + ' game next.')
+    print(formattedPlayerName + ' in ' + nextGame + ' games has averaged ' + homeGamesAvgPts + ' points, ' + homeGamesAvgReb + ' rebounds, and ' + homeGamesAvgAst + ' assists in ' + homeGamesPlayed + ' games.')
+    print(formattedPlayerName + ' in ' + nextGame + ' games is shooting ' + homeGamesFGPercent + ' percent from the field and ' + homeGamesThreePtPercent + ' percent from three in ' + homeGamesPlayed + ' games.')
+else:
+    print(formattedPlayerName + ' has an ' + nextGame + ' game next.')
+    print(formattedPlayerName + ' in ' + nextGame + ' games has averaged ' + awayGamesAvgPts + ' points, ' + awayGamesAvgReb + ' rebounds, and ' + awayGamesAvgAst + ' assists in ' + awayGamesPlayed + ' games.')
+    print(formattedPlayerName + ' in ' + nextGame + ' games is shooting ' + awayGamesFGPercent + ' percent from the field and ' + awayGamesThreePtPercent + ' percent from three in ' + awayGamesPlayed + ' games.')
+print(' ')
+
+#TODO add split data home and away and then positional defense data. Potentially add code to check how injured games are handled by days rest
 
 #Below is the basketball reference code I decided to axe bc it was not effective
 
