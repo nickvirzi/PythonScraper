@@ -139,9 +139,9 @@ for tableRow in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[
     dataCounterOne += 1
     if currentMonth == data[0]:
         curMonthCounter = dataCounterOne
-    elif nextGame == data[0]:
+    elif 'Home' == data[0]:
         homeGameCounter = dataCounterOne
-    elif nextGame == data[0]:
+    elif 'Road' == data[0]:
         awayGameCounter = dataCounterOne
     elif daysRest[0] == data[0]:
         zeroDaysRestCounter = dataCounterOne
@@ -153,6 +153,9 @@ for tableRow in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[
         threePlusDaysCounter = dataCounterOne
     elif addVSAbbrev == data[0]:
         vsTeamCounter = dataCounterOne
+
+awayGameSplits = []
+homeGameSplits = []
 
 #This loop grabs the stats from the other side of the table
 for tableRow in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[5]/div/div[1]/div[1]/section/div[1]/div[2]/div/div/div[2]/table//tr'): 
@@ -216,7 +219,7 @@ threePlusDaysRestAvgReb = threePlusDaysRestSplits[10]
 threePlusDaysRestAvgAst = threePlusDaysRestSplits[11]
 
 #Sets up all stats for away and  game splits
-if nextGame == 'Away':
+if nextGame == 'Road':
     awayGamesPlayed = awayGameSplits[0]
     awayGamesFGPercent = awayGameSplits[3]
     awayGamesThreePtPercent = awayGameSplits[5]
@@ -274,8 +277,8 @@ if nextGame == 'Home':
     print(formattedPlayerName + ' has a ' + nextGame + ' game next.')
     print(formattedPlayerName + ' in ' + nextGame + ' games has averaged ' + homeGamesAvgPts + ' points, ' + homeGamesAvgReb + ' rebounds, and ' + homeGamesAvgAst + ' assists in ' + homeGamesPlayed + ' games.')
     print(formattedPlayerName + ' in ' + nextGame + ' games is shooting ' + homeGamesFGPercent + ' percent from the field and ' + homeGamesThreePtPercent + ' percent from three in ' + homeGamesPlayed + ' games.')
-else:
-    print(formattedPlayerName + ' has an ' + nextGame + ' game next.')
+elif nextGame == 'Road':
+    print(formattedPlayerName + ' has a ' + nextGame + ' game next.')
     print(formattedPlayerName + ' in ' + nextGame + ' games has averaged ' + awayGamesAvgPts + ' points, ' + awayGamesAvgReb + ' rebounds, and ' + awayGamesAvgAst + ' assists in ' + awayGamesPlayed + ' games.')
     print(formattedPlayerName + ' in ' + nextGame + ' games is shooting ' + awayGamesFGPercent + ' percent from the field and ' + awayGamesThreePtPercent + ' percent from three in ' + awayGamesPlayed + ' games.')
 print(' ')
