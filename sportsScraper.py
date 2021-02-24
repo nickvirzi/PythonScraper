@@ -84,8 +84,21 @@ class player:
 
         self.formattedPlayerName = formattedFirstName + ' ' + formattedLastName
 
+    def getRecentGames(self):
+        self.avgPointsRecentGames = []
+
+        try:
+            for tableRow in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[5]/div/div/section[2]/div/div/div/div/div[2]/table//tr'): 
+                dataFour = [item.text for item in tableRow.find_elements_by_xpath(".//*[self::td]")]
+                if len(dataFour) > 1:
+                    self.avgPointsRecentGames.append(dataFour[13])
+        except:
+            print('yeet')
+        print(self.avgPointsRecentGames)
+
+
     def getSeasonAverages(self):
-        #Grabe average stats for the player for the season
+        #Grab average stats for the player for the season
         self.averagePoints = driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[1]/div/div/div[2]/aside/ul/li[1]/div/div[2]').text
         self.averageRebounds = driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[1]/div/div/div[2]/aside/ul/li[2]/div/div[2]').text
         self.averageAssists = driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[1]/div/div/div[2]/aside/ul/li[3]/div/div[2]').text
@@ -247,6 +260,7 @@ player = player(playerNameInput)
 findAndSelectPlayerESPN(player.name)
 
 player.getFormattedName()
+player.getRecentGames()
 player.getSeasonAverages()
 player.getPlayersTeam()
 
