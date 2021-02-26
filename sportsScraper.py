@@ -19,10 +19,21 @@ driver.get('https://www.espn.com/')
 #Take in team name and return the ESPN team abbreviation
 def getESPNTeamAbbreviation(teamName):
     teamAbbreviationDictionary = {
-        'Atlanta': 'ATL', 'Boston': 'BOS', 'Charlotte': 'CHA', 'Chicago': 'CHI', 'Cleveland': 'CLE', 'Dallas': 'DAL', 'Denver': 'DEN', 'Detroit': 'DET', 'Houston': 'HOU', 'Indiana': 'IND', 'Memphis': 'MEM',
-        'Miami': 'MIA', 'Miluakee': 'MIL', 'Minnesota': 'MIN', 'Orlando': 'ORL', 'Philadelphia': 'PHI', 'Phoenix': 'PHO', 'Portland': 'POR', 'Sacramento': 'SAC', 'Toronto': 'TOR', 'Utah': 'UTA', 'Washington': 'WAS',
-        'Golden State': 'GS', 'New Orleans': 'NO', 'New York': 'NY', 'San Antonio': 'SA'
+        'Atlanta': 'ATL', 'Boston': 'BOS', 'Brooklyn': 'BKN', 'Charlotte': 'CHA', 'Chicago': 'CHI', 'Cleveland': 'CLE', 'Dallas': 'DAL', 'Denver': 'DEN', 'Detroit': 'DET', 'Houston': 'HOU', 'Indiana': 'IND', 'Memphis': 'MEM',
+        'Miami': 'MIA', 'Miluakee': 'MIL', 'Minnesota': 'MIN', 'Orlando': 'ORL', 'Oklahoma City': 'OKC', 'Philadelphia': 'PHI', 'Phoenix': 'PHO', 'Portland': 'POR', 'Sacramento': 'SAC', 'Toronto': 'TOR', 'Utah': 'UTA', 'Washington': 'WAS',
+        'Golden State': 'GS', 'New Orleans': 'NO', 'New York': 'NY', 'San Antonio': 'SA', 'Los Angeles': 'LAL'
     }
+
+    abbreviation = teamAbbreviationDictionary[teamName]
+    return abbreviation
+
+def getHTBTeamAbbreviation(teamName):
+    teamAbbreviationDictionary = {
+    'Atlanta': 'ATL', 'Boston': 'BOS', 'Brooklyn': 'BRO', 'Charlotte': 'CHA', 'Chicago': 'CHI', 'Cleveland': 'CLE', 'Dallas': 'DAL', 'Denver': 'DEN', 'Detroit': 'DET', 'Houston': 'HOU', 'Indiana': 'IND', 'Memphis': 'MEM',
+    'Miami': 'MIA', 'Miluakee': 'MIL', 'Minnesota': 'MIN', 'Orlando': 'ORL', 'Oklahoma City': 'OKL', 'Philadelphia': 'PHI', 'Phoenix': 'PHX', 'Portland': 'POR', 'Sacramento': 'SAC', 'Toronto': 'TOR', 'Utah': 'UTA', 'Washington': 'WAS',
+    'Golden State': 'GSW', 'New Orleans': 'NOP', 'New York': 'NYK', 'San Antonio': 'SAS', 'Los Angeles': 'LAL'
+    }
+    
     abbreviation = teamAbbreviationDictionary[teamName]
     return abbreviation
 
@@ -138,7 +149,7 @@ class player:
                     previousMatchupData = previousData
                     previousMatchupClause = False
                 previousData = dataThree
-
+                
         nextGameDate = nextGameDateUnformatted[9:]
         previousGameDate = previousMatchupData[0][9:]
         self.daysRestInt = (int(nextGameDate) - int(previousGameDate)) - 1
