@@ -85,16 +85,27 @@ class player:
         self.formattedPlayerName = formattedFirstName + ' ' + formattedLastName
 
     def getRecentGames(self):
-        self.avgPointsRecentGames = []
+        self.avgPointsRecentGamesArr = []
+        self.avgReboundsRecentGamesArr = []
+        self.avgAssistsRecentGamesArr = []
 
         try:
             for tableRow in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[5]/div/div/section[2]/div/div/div/div/div[2]/table//tr'): 
                 dataFour = [item.text for item in tableRow.find_elements_by_xpath(".//*[self::td]")]
                 if len(dataFour) > 1:
-                    self.avgPointsRecentGames.append(dataFour[13])
+                    self.avgPointsRecentGamesArr.append(int(dataFour[13]))
+                    self.avgReboundsRecentGamesArr.append(int(dataFour[7]))
+                    self.avgAssistsRecentGamesArr.append(int(dataFour[8]))
+            self.espnRecentDataWasFound = True
         except:
-            print('yeet')
-        print(self.avgPointsRecentGames)
+            print('ESPN is not showing this data at the moment')
+            self.espnRecentDataWasFound = False
+        
+        if self.espnRecentDataWasFound == True:
+            self.avgPointsRecentGames = sum(self.avgPointsRecentGamesArr) / len(self.avgPointsRecentGamesArr)
+            self.avgReboundsRecentGames = sum(self.avgReboundsRecentGamesArr) / len(self.avgReboundsRecentGamesArr)
+            self.avgAssistsRecentGames = sum(self.avgAssistsRecentGamesArr) / len(self.avgAssistsRecentGamesArr)
+            self.numOfRecentGames = len(self.avgPointsRecentGamesArr)
 
 
     def getSeasonAverages(self):
@@ -211,8 +222,8 @@ class player:
 
         print(' ')
 
-        print(self.formattedPlayerName + ' in ' + currentMonth + ' has averaged ' + self.curMonthSplits[16] + ' points, ' + self.curMonthSplits[10] + ' rebounds, and ' + self.curMonthSplits[11] + ' assists in ' + self.curMonthSplits[0] + ' games.')
-        print(self.formattedPlayerName + ' in ' + currentMonth + ' is shooting ' + self.curMonthSplits[3] + ' percent from the field and ' + self.curMonthSplits[5] + ' percent from three.')
+        if self.espnRecentDataWasFound == True:
+            print(self.formattedPlayerName + ' has averaged ' + str(self.avgPointsRecentGames) + ' points, ' + str(self.avgReboundsRecentGames) + ' rebounds, and ' + str(self.avgAssistsRecentGames) + ' assists in his last ' + str(self.numOfRecentGames) + ' games.')
         
         print(' ')
 
@@ -254,6 +265,10 @@ class player:
         
         print(' ')
 
+        
+        print(self.formattedPlayerName + ' in ' + currentMonth + ' has averaged ' + self.curMonthSplits[16] + ' points, ' + self.curMonthSplits[10] + ' rebounds, and ' + self.curMonthSplits[11] + ' assists in ' + self.curMonthSplits[0] + ' games.')
+        print(self.formattedPlayerName + ' in ' + currentMonth + ' is shooting ' + self.curMonthSplits[3] + ' percent from the field and ' + self.curMonthSplits[5] + ' percent from three.')
+
 #Begin Main
 player = player(playerNameInput)
 
@@ -283,3 +298,4 @@ player.printPlayerData(currentMonth)
 
 #TODO Potentially add code to check how injured games are handled by days rest
 #TODO Add matchup defense data
+#TODO Add way to handle los angeles for next matchup
