@@ -3,13 +3,17 @@ import sys
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import datetime
+from datetime import date
 
 #Get initial input
-playerNameInput = input("Enter player name: ")
+playerNameInputs = input("Enter players names seperated by commas: ")
+playerNameArray = playerNameInputs.split(', ')
 
 #Gets current month
 currentDate = datetime.datetime.now()
 currentMonth = currentDate.strftime("%B")
+
+playerArray = []
 
 #Sets up driver
 DRIVER_PATH = r'C:\Users\navir\Documents\ChromeDriver\chromedriver.exe'
@@ -34,9 +38,15 @@ def getHTBTeamAbbreviation(teamName):
     'Golden State': 'GSW', 'New Orleans': 'NOP', 'New York': 'NYK', 'San Antonio': 'SAS', 'Los Angeles': 'LAL'
     }
     
-    abbreviation = teamAbbreviationDictionary[teamName]
-    return abbreviation
+    return teamAbbreviationDictionary[teamName]
 
+def getMonthNumericalValue(month):
+    monthToNumber = {
+    'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
+    }
+
+    return monthToNumber[month]
+    
 def findAndSelectPlayerESPN(playerName):
     #Search players name on ESPN
     driver.find_element_by_xpath('//*[@id="global-search-trigger"]').click()
@@ -63,6 +73,9 @@ def findAndSelectPlayerESPN(playerName):
     driver.switch_to.window(window_after)
 
 def getTeamSchedule():
+    
+    driver.execute_script("window.scrollTo(0,0)") 
+
     #Click the players team
     driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[1]/div/div/div[1]/div[1]/div[2]/div/ul/li[1]').click()
 
@@ -77,14 +90,43 @@ def getTeamSchedule():
 
 def goToPlayerSplits():
     #Click Game Splits
-    driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[2]/nav/ul/li[5]/a').click()
+    driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[2]/nav/ul/li[5]/a/span').click()
+    
 
     window_after = driver.window_handles[0]
     driver.switch_to.window(window_after)
 
     time.sleep(5)
 
-class player:
+def runPlayerdata(playerData, currentMonth):
+
+    findAndSelectPlayerESPN(playerData.name)
+
+    playerData.getFormattedName()
+    playerData.getRecentGames()
+    playerData.getSeasonAverages()
+    playerData.getPlayersTeam()
+
+    getTeamSchedule()
+
+    playerData.getNextOpponentAndDaysRest()
+    playerData.getNextOpponentFormattedAndAbbreviated()
+
+    #Go back to the players profile to then determine splits based upon opponent 
+    driver = webdriver.Chrome(executable_path=DRIVER_PATH)
+    driver.get(playerData.playerURL)
+
+    window_after = driver.window_handles[0]
+    driver.switch_to.window(window_after)
+    
+    driver.execute_script("window.scrollTo(0,0)") 
+
+    goToPlayerSplits()
+
+    playerData.getPlayerSplits(currentMonth)
+    playerData.printPlayerData(currentMonth)
+
+class Player:
     def __init__(self,name):
         self.name = name
 
@@ -149,10 +191,20 @@ class player:
                     previousMatchupData = previousData
                     previousMatchupClause = False
                 previousData = dataThree
-                
-        nextGameDate = nextGameDateUnformatted[9:]
-        previousGameDate = previousMatchupData[0][9:]
-        self.daysRestInt = (int(nextGameDate) - int(previousGameDate)) - 1
+
+        nextYear = 2021
+        nextMonth = getMonthNumericalValue(nextGameDateUnformatted[5:8])
+        nextDay = int(nextGameDateUnformatted[9:])
+
+        previousYear = 2021
+        previousMonth = getMonthNumericalValue(previousMatchupData[0][5:8])
+        previousDay = int(previousMatchupData[0][9:])
+
+        d0 = date(previousYear, previousMonth, previousDay)
+        d1 = date(nextYear, nextMonth, nextDay)
+        delta = d1 - d0
+
+        self.daysRestInt = delta.days
 
     def getNextOpponentFormattedAndAbbreviated(self):
         #Formatting and handling the team name and getting the abbreviation and determine home or away game
@@ -168,6 +220,9 @@ class player:
         self.addVSAbbrev = 'vs ' + nextOpponentAbbreviated
 
     def getPlayerSplits(self,currentMonth):
+
+        driver.execute_script("window.scrollTo(0,0)") 
+        
         dataCounterOne = 0
         dataCounterTwo = 0
         awayGameCounter = 0
@@ -281,31 +336,13 @@ class player:
         print(self.formattedPlayerName + ' in ' + currentMonth + ' is shooting ' + self.curMonthSplits[3] + ' percent from the field and ' + self.curMonthSplits[5] + ' percent from three.')
 
 #Begin Main
-player = player(playerNameInput)
 
-findAndSelectPlayerESPN(player.name)
-
-player.getFormattedName()
-player.getRecentGames()
-player.getSeasonAverages()
-player.getPlayersTeam()
-
-getTeamSchedule()
-
-player.getNextOpponentAndDaysRest()
-player.getNextOpponentFormattedAndAbbreviated()
-
-#Go back to the players profile to then determine splits based upon opponent 
-driver = webdriver.Chrome(executable_path=DRIVER_PATH)
-driver.get(player.playerURL)
-
-window_after = driver.window_handles[0]
-driver.switch_to.window(window_after)
-
-goToPlayerSplits()
-
-player.getPlayerSplits(currentMonth)
-player.printPlayerData(currentMonth)
+for x in playerNameArray:
+    player = Player(x)
+    playerArray.append(player)
+    
+for s in playerArray:
+    runPlayerdata(s, currentMonth)
 
 #TODO Potentially add code to check how injured games are handled by days rest
 #TODO Add matchup defense data
