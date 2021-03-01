@@ -88,15 +88,19 @@ def getTeamSchedule():
     window_after = driver.window_handles[0]
     driver.switch_to.window(window_after)
 
-def goToPlayerSplits():
-    #Click Game Splits
-    driver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[2]/nav/ul/li[5]/a/span').click()
-    
+def goToPlayerSplits(newDriver):
+    print(newDriver.current_url)
+    newDriver.execute_script("window.scrollTo(0,0)") 
 
-    window_after = driver.window_handles[0]
-    driver.switch_to.window(window_after)
+    #Click Game Splits
+    newDriver.find_element_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[2]/nav/ul/li[5]/a').click()
+
+    window_after = newDriver.window_handles[0]
+    newDriver.switch_to.window(window_after)
 
     time.sleep(5)
+
+    return newDriver
 
 def runPlayerdata(playerData, currentMonth):
 
@@ -118,12 +122,10 @@ def runPlayerdata(playerData, currentMonth):
 
     window_after = driver.window_handles[0]
     driver.switch_to.window(window_after)
-    
-    driver.execute_script("window.scrollTo(0,0)") 
 
-    goToPlayerSplits()
+    driver = goToPlayerSplits(driver)
 
-    playerData.getPlayerSplits(currentMonth)
+    playerData.getPlayerSplits(currentMonth, driver)
     playerData.printPlayerData(currentMonth)
 
 class Player:
@@ -183,7 +185,7 @@ class Player:
         for tableRow in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[5]/div/div[1]/section/div/section/section/div/div/div/div[2]/table//tr'): 
             dataThree = [item.text for item in tableRow.find_elements_by_xpath(".//*[self::td]")]
             if len(dataThree) > 3: #This if statement helps to prevent postponed games
-                if dataThree[3] == '':
+                if len(dataThree) == 5 and dataThree[0] != 'DATE':
                     self.nextOpponent = dataThree[1]
                     nextGameDateUnformatted = dataThree[0]
                     break
@@ -204,7 +206,7 @@ class Player:
         d1 = date(nextYear, nextMonth, nextDay)
         delta = d1 - d0
 
-        self.daysRestInt = delta.days
+        self.daysRestInt = delta.days - 1
 
     def getNextOpponentFormattedAndAbbreviated(self):
         #Formatting and handling the team name and getting the abbreviation and determine home or away game
@@ -219,7 +221,7 @@ class Player:
 
         self.addVSAbbrev = 'vs ' + nextOpponentAbbreviated
 
-    def getPlayerSplits(self,currentMonth):
+    def getPlayerSplits(self,currentMonth,driver):
 
         driver.execute_script("window.scrollTo(0,0)") 
         
@@ -227,7 +229,8 @@ class Player:
         dataCounterTwo = 0
         awayGameCounter = 0
         homeGameCounter = 0
-        
+
+        self.curMonthCounter = None
         self.vsTeamCounter = 0
 
         #Set up to find days rest in the table
@@ -240,7 +243,7 @@ class Player:
             data = [item.text for item in tableRow.find_elements_by_xpath(".//*[self::td]")]
             dataCounterOne += 1
             if currentMonth == data[0]:
-                curMonthCounter = dataCounterOne
+                self.curMonthCounter = dataCounterOne
             elif 'Home' == data[0]:
                 homeGameCounter = dataCounterOne
             elif 'Road' == data[0]:
@@ -263,7 +266,7 @@ class Player:
         for tableRow in driver.find_elements_by_xpath('//*[@id="fittPageContainer"]/div[2]/div[5]/div/div/div[1]/section/div[1]/div[2]/div/div/div[2]/table//tr'): 
             dataTwo = [item.text for item in tableRow.find_elements_by_xpath(".//*[self::td]")]
             dataCounterTwo += 1
-            if curMonthCounter == dataCounterTwo:
+            if self.curMonthCounter == dataCounterTwo:
                 self.curMonthSplits = dataTwo
             elif homeGameCounter == dataCounterTwo:
                 self.homeGameSplits = dataTwo
@@ -331,9 +334,9 @@ class Player:
         
         print(' ')
 
-        
-        print(self.formattedPlayerName + ' in ' + currentMonth + ' has averaged ' + self.curMonthSplits[16] + ' points, ' + self.curMonthSplits[10] + ' rebounds, and ' + self.curMonthSplits[11] + ' assists in ' + self.curMonthSplits[0] + ' games.')
-        print(self.formattedPlayerName + ' in ' + currentMonth + ' is shooting ' + self.curMonthSplits[3] + ' percent from the field and ' + self.curMonthSplits[5] + ' percent from three.')
+        if self.curMonthCounter != None:
+            print(self.formattedPlayerName + ' in ' + currentMonth + ' has averaged ' + self.curMonthSplits[16] + ' points, ' + self.curMonthSplits[10] + ' rebounds, and ' + self.curMonthSplits[11] + ' assists in ' + self.curMonthSplits[0] + ' games.')
+            print(self.formattedPlayerName + ' in ' + currentMonth + ' is shooting ' + self.curMonthSplits[3] + ' percent from the field and ' + self.curMonthSplits[5] + ' percent from three.')
 
 #Begin Main
 
@@ -343,6 +346,9 @@ for x in playerNameArray:
     
 for s in playerArray:
     runPlayerdata(s, currentMonth)
+
+    driver = webdriver.Chrome(executable_path=DRIVER_PATH)
+    driver.get('https://www.espn.com/')
 
 #TODO Potentially add code to check how injured games are handled by days rest
 #TODO Add matchup defense data
