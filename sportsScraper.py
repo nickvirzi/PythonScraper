@@ -353,3 +353,4 @@ for s in playerArray:
 #TODO Potentially add code to check how injured games are handled by days rest
 #TODO Add matchup defense data
 #TODO Add way to handle los angeles for next matchup
+#TODO When a player has not had a _ days rest game it needs to be handled, example oladipo has never had 0 days rest, it breaks the program
