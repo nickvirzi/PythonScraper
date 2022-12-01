@@ -16,7 +16,7 @@ currentMonth = currentDate.strftime("%B")
 playerArray = []
 
 #Sets up driver
-DRIVER_PATH = r'C:\Users\navir\Documents\ChromeDriver\chromedriver.exe'
+DRIVER_PATH = r'C:\ChromeDriver\chromedriver.exe'
 driver = webdriver.Chrome(executable_path=DRIVER_PATH)
 driver.get('https://www.espn.com/')
 
