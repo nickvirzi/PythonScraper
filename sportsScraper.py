@@ -2,6 +2,8 @@ import time
 import sys
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import datetime
 from datetime import date
 
@@ -16,8 +18,7 @@ currentMonth = currentDate.strftime("%B")
 playerArray = []
 
 #Sets up driver
-DRIVER_PATH = r'C:\ChromeDriver\chromedriver.exe'
-driver = webdriver.Chrome(executable_path=DRIVER_PATH)
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 driver.get('https://www.espn.com/')
 
 #Take in team name and return the ESPN team abbreviation
